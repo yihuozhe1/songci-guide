@@ -871,15 +871,29 @@ def _guess_lan_ip() -> str:
     return ip
 
 
-def _render_mobile_preview_sidebar() -> None:
-    port = st.get_option("server.port") or 8501
+def _get_public_app_url() -> str:
     try:
-        port_i = int(port)
+        v = str(st.secrets.get("PUBLIC_APP_URL", "") or "").strip()
     except Exception:
-        port_i = 8501
+        v = ""
+    if v:
+        return v.rstrip("/")
+    return str(os.getenv("PUBLIC_APP_URL") or "").strip().rstrip("/")
 
-    ip = _guess_lan_ip()
-    url = f"http://{ip}:{port_i}"
+
+def _render_mobile_preview_sidebar() -> None:
+    public_url = _get_public_app_url()
+    if public_url:
+        url = public_url
+    else:
+        port = st.get_option("server.port") or 8501
+        try:
+            port_i = int(port)
+        except Exception:
+            port_i = 8501
+
+        ip = _guess_lan_ip()
+        url = f"http://{ip}:{port_i}"
     qr_data = urlparse.quote(url, safe="")
     qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={qr_data}"
 

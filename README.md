@@ -85,6 +85,7 @@ git status --ignored
 ```toml
 DB_MODE = "auto"
 POSTGRES_DSN = "postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require"
+PUBLIC_APP_URL = "https://<your-app>.streamlit.app"
 
 # Optional
 ZHIPU_API_KEY = ""
