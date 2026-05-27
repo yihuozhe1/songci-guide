@@ -1093,7 +1093,11 @@ with st.container():
         key=note_widget_key,
     )
 
-    if st.button("保存笔记", disabled=not bool(uk)):
+    if st.button("保存笔记"):
+        if not uk:
+            st.warning("请先填写 user_key 后再保存笔记。")
+            st.stop()
+
         def _save(db: SongciDb) -> None:
             db.upsert_poem_note(poem_id=int(poem_id), user_key=uk, content=note_text)
             db.commit()
