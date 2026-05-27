@@ -1037,7 +1037,7 @@ with st.container():
     if note_widget_key not in st.session_state:
         st.session_state[note_widget_key] = str(existing_note or "")
 
-    if st.button("保存笔记", key=f"save_{note_widget_key}"):
+    def _save_current_note() -> None:
         note_text = str(st.session_state.get(note_widget_key, ""))
         if not uk:
             st.warning("请先填写 user_key 后再保存笔记。")
@@ -1049,6 +1049,13 @@ with st.container():
 
         _db_call(target, _save)
         st.success("已保存。")
+
+    with st.sidebar:
+        if st.button("保存当前笔记", key=f"save_sidebar_{note_widget_key}"):
+            _save_current_note()
+
+    if st.button("保存笔记", key=f"save_{note_widget_key}"):
+        _save_current_note()
 
     st.text_area(
         "写下你的课堂笔记（同一 user_key 可在手机/PC 共享）",
