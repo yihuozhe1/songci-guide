@@ -5,7 +5,6 @@ import html
 import json
 import os
 import re
-import socket
 import ssl
 import sys
 from urllib import error as urlerror
@@ -297,6 +296,18 @@ def _inject_global_styles() -> None:
           .stApp {
             background: var(--paper);
             color: var(--text-color);
+          }
+          [data-testid="stHeader"],
+          [data-testid="stToolbar"],
+          [data-testid="stToolbarActions"],
+          [data-testid="stStatusWidget"],
+          [data-testid="stMainMenu"],
+          [data-testid="stDecoration"],
+          .stDeployButton,
+          footer {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
           }
           .stApp,
           [data-testid="stSidebar"],
@@ -592,7 +603,7 @@ def _inject_global_styles() -> None:
           }
           @media (max-width: 768px) {
             header[data-testid="stHeader"] {
-              z-index: 10000;
+              display: none !important;
             }
             [data-testid="stSidebar"] {
               position: fixed !important;
@@ -848,68 +859,6 @@ def _render_rare_chars_entry() -> None:
                 _rare_chars_panel()
 
 
-def _guess_lan_ip() -> str:
-    ip = ""
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            s.connect(("8.8.8.8", 80))
-            ip = str(s.getsockname()[0] or "")
-        finally:
-            s.close()
-    except Exception:
-        ip = ""
-
-    if not ip:
-        try:
-            ip = str(socket.gethostbyname(socket.gethostname()) or "")
-        except Exception:
-            ip = ""
-
-    if ip.startswith("127.") or ip.startswith("169.254.") or not ip:
-        return "localhost"
-    return ip
-
-
-def _get_public_app_url() -> str:
-    try:
-        v = str(st.secrets.get("PUBLIC_APP_URL", "") or "").strip()
-    except Exception:
-        v = ""
-    if v:
-        return v.rstrip("/")
-    return str(os.getenv("PUBLIC_APP_URL") or "").strip().rstrip("/")
-
-
-def _render_mobile_preview_sidebar() -> None:
-    public_url = _get_public_app_url()
-    if public_url:
-        url = public_url
-        preview_caption = "扫码打开当前公网页面，在手机上进行真实手感测试。"
-    else:
-        port = st.get_option("server.port") or 8501
-        try:
-            port_i = int(port)
-        except Exception:
-            port_i = 8501
-
-        ip = _guess_lan_ip()
-        url = f"http://{ip}:{port_i}"
-        preview_caption = "同一局域网下，用手机扫码打开页面进行真实手感测试。"
-    qr_data = urlparse.quote(url, safe="")
-    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={qr_data}"
-
-    with st.sidebar:
-        st.divider()
-        st.subheader("手机预览")
-        st.caption(preview_caption)
-        st.markdown(
-            f"<img src='{qr_url}' style='width: 220px; max-width: 100%; border-radius: 16px; border: 1px solid var(--line);' />",
-            unsafe_allow_html=True,
-        )
-        st.code(url)
-
-
 st.set_page_config(page_title="宋词导读·数字辞典", layout="wide")
 _inject_global_styles()
 
@@ -919,7 +868,6 @@ required_only = st.sidebar.checkbox("仅必背", value=False)
 query = st.sidebar.text_input("搜索（标题/作者/正文）", value="", key="search_query")
 user_key = st.sidebar.text_input("user_key（用于笔记隔离）", value=st.session_state.get("user_key", ""))
 st.session_state["user_key"] = user_key
-_render_mobile_preview_sidebar()
 
 try:
     secrets_db_mode = str(st.secrets.get("DB_MODE", "") or "").strip()
@@ -1086,14 +1034,11 @@ with st.container():
         existing_note = note_row["content"] if note_row else ""
 
     note_widget_key = "note_" + hashlib.sha256(f"{poem_id}::{uk}".encode("utf-8")).hexdigest()[:16]
-    note_text = st.text_area(
-        "写下你的课堂笔记（同一 user_key 可在手机/PC 共享）",
-        value=str(existing_note or ""),
-        height=260,
-        key=note_widget_key,
-    )
+    if note_widget_key not in st.session_state:
+        st.session_state[note_widget_key] = str(existing_note or "")
 
-    if st.button("保存笔记"):
+    if st.button("保存笔记", key=f"save_{note_widget_key}"):
+        note_text = str(st.session_state.get(note_widget_key, ""))
         if not uk:
             st.warning("请先填写 user_key 后再保存笔记。")
             st.stop()
@@ -1104,5 +1049,12 @@ with st.container():
 
         _db_call(target, _save)
         st.success("已保存。")
-    elif not uk:
+
+    st.text_area(
+        "写下你的课堂笔记（同一 user_key 可在手机/PC 共享）",
+        height=170,
+        key=note_widget_key,
+    )
+
+    if not uk:
         st.caption("填写 user_key 后可保存（用于多端同步与隔离）。")
