@@ -885,6 +885,7 @@ def _render_mobile_preview_sidebar() -> None:
     public_url = _get_public_app_url()
     if public_url:
         url = public_url
+        preview_caption = "扫码打开当前公网页面，在手机上进行真实手感测试。"
     else:
         port = st.get_option("server.port") or 8501
         try:
@@ -894,13 +895,14 @@ def _render_mobile_preview_sidebar() -> None:
 
         ip = _guess_lan_ip()
         url = f"http://{ip}:{port_i}"
+        preview_caption = "同一局域网下，用手机扫码打开页面进行真实手感测试。"
     qr_data = urlparse.quote(url, safe="")
     qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={qr_data}"
 
     with st.sidebar:
         st.divider()
         st.subheader("手机预览")
-        st.caption("同一局域网下，用手机扫码打开页面进行真实手感测试。")
+        st.caption(preview_caption)
         st.markdown(
             f"<img src='{qr_url}' style='width: 220px; max-width: 100%; border-radius: 16px; border: 1px solid var(--line);' />",
             unsafe_allow_html=True,
