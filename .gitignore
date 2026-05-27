@@ -1,0 +1,12 @@
+data/*.sqlite
+data/*.sqlite3
+data/*.db
+data/*.wal
+data/*.shm
+.streamlit/secrets.toml
+.env
+*.pdf
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
