@@ -297,7 +297,6 @@ def _inject_global_styles() -> None:
             background: var(--paper);
             color: var(--text-color);
           }
-          [data-testid="stToolbar"],
           [data-testid="stToolbarActions"],
           [data-testid="stStatusWidget"],
           [data-testid="stMainMenu"],
@@ -309,6 +308,9 @@ def _inject_global_styles() -> None:
             height: 0 !important;
           }
           [data-testid="stHeader"] {
+            background: transparent !important;
+          }
+          [data-testid="stToolbar"] {
             background: transparent !important;
           }
           .stApp,
@@ -858,7 +860,11 @@ def _render_rare_chars_entry() -> None:
                 _rare_chars_panel()
 
 
-st.set_page_config(page_title="宋词导读·数字辞典", layout="wide")
+st.set_page_config(
+    page_title="宋词导读·数字辞典",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 _inject_global_styles()
 
 st.sidebar.title("宋词导读")
