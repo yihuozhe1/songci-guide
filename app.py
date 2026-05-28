@@ -297,7 +297,6 @@ def _inject_global_styles() -> None:
             background: var(--paper);
             color: var(--text-color);
           }
-          [data-testid="stHeader"],
           [data-testid="stToolbar"],
           [data-testid="stToolbarActions"],
           [data-testid="stStatusWidget"],
@@ -308,6 +307,9 @@ def _inject_global_styles() -> None:
             display: none !important;
             visibility: hidden !important;
             height: 0 !important;
+          }
+          [data-testid="stHeader"] {
+            background: transparent !important;
           }
           .stApp,
           [data-testid="stSidebar"],
@@ -602,9 +604,6 @@ def _inject_global_styles() -> None:
             }
           }
           @media (max-width: 768px) {
-            header[data-testid="stHeader"] {
-              display: none !important;
-            }
             [data-testid="stSidebar"] {
               position: fixed !important;
               top: 0;
